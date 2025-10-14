@@ -806,22 +806,18 @@ void NET_Init (void)
 	int			i;
 	int			controlSocket;
 	qsocket_t	*s;
-
 	if (COM_CheckParm("-playback"))
 	{
 		net_numdrivers = 1;
 		net_drivers[0].Init = VCR_Init;
 	}
-
 	if (COM_CheckParm("-record"))
 		recording = true;
-
 	i = COM_CheckParm ("-port");
 	if (!i)
 		i = COM_CheckParm ("-udpport");
 	if (!i)
 		i = COM_CheckParm ("-ipxport");
-
 	if (i)
 	{
 		if (i < com_argc-1)
@@ -830,7 +826,6 @@ void NET_Init (void)
 			Sys_Error ("NET_Init: you must specify a number after -port");
 	}
 	net_hostport = DEFAULTnet_hostport;
-
 	if (COM_CheckParm("-listen") || cls.state == ca_dedicated)
 		listening = true;
 	net_numsockets = svs.maxclientslimit;
@@ -870,21 +865,24 @@ void NET_Init (void)
 	Cmd_AddCommand ("port", NET_Port_f);
 
 	// initialize all the drivers
+#if 0
 	for (net_driverlevel=0 ; net_driverlevel<net_numdrivers ; net_driverlevel++)
-		{
-		controlSocket = net_drivers[net_driverlevel].Init();
-		if (controlSocket == -1)
-			continue;
-		net_drivers[net_driverlevel].initialized = true;
-		net_drivers[net_driverlevel].controlSock = controlSocket;
-		if (listening)
-			net_drivers[net_driverlevel].Listen (true);
-		}
+	  {
+	    controlSocket = net_drivers[net_driverlevel].Init();
+	    if (controlSocket == -1)
+	      continue;
+	    net_drivers[net_driverlevel].initialized = true;
+	    net_drivers[net_driverlevel].controlSock = controlSocket;
+	    if (listening)
+	      net_drivers[net_driverlevel].Listen (true);
+	  }
+#endif	
 
 	if (*my_ipx_address)
 		Con_DPrintf("IPX address %s\n", my_ipx_address);
 	if (*my_tcpip_address)
 		Con_DPrintf("TCP/IP address %s\n", my_tcpip_address);
+
 }
 
 /*

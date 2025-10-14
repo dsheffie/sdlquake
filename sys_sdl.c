@@ -354,7 +354,7 @@ void Sys_LineRefresh(void)
 
 void Sys_Sleep(void)
 {
-	SDL_Delay(1);
+	usleep(1000);
 }
 
 void floating_point_exception_handler(int whatever)
@@ -408,7 +408,7 @@ int main (int c, char **v)
         {   // play vcrfiles at max speed
             if (time < sys_ticrate.value && (vcrFile == -1 || recording) )
             {
-                SDL_Delay (1);
+			  usleep(1000);
                 continue;       // not time to run a server only tic yet
             }
             time = sys_ticrate.value;

@@ -139,7 +139,7 @@ surfcache_t     *D_SCAlloc (int width, uintptr_t size)
 		Sys_Error ("D_SCAlloc: bad cache size %d\n", size);
 	
 	size = (uintptr_t)&((surfcache_t *)0)->data[size];
-	size = (size + 3) & ~3;
+	size = (size + sizeof(void*) - 1) & ~(sizeof(void*) -1);
 	if (size > sc_size)
 		Sys_Error ("D_SCAlloc: %i > cache size",size);
 
@@ -204,6 +204,11 @@ surfcache_t     *D_SCAlloc (int width, uintptr_t size)
 		d_roverwrapped = true;
 	}
 
+
+	if((((uintptr_t)new) & 7)) {
+	  printf("warning, pointer returned by %s is not aligned to an 8 byte boundary, new = %p\n", __PRETTY_FUNCTION__, new);
+	}
+	
 D_CheckCacheGuard ();   // DEBUG
 	return new;
 }
@@ -301,8 +306,7 @@ surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel)
 //
 	if (!cache)     // if a texture just animated, don't reallocate it
 	{
-		cache = D_SCAlloc (r_drawsurf.surfwidth,
-						   r_drawsurf.surfwidth * r_drawsurf.surfheight);
+		cache = D_SCAlloc (r_drawsurf.surfwidth, r_drawsurf.surfwidth * r_drawsurf.surfheight);
 		surface->cachespots[miplevel] = cache;
 		cache->owner = &surface->cachespots[miplevel];
 		cache->mipscale = surfscale;

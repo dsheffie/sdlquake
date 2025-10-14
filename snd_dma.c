@@ -166,80 +166,8 @@ S_Init
 */
 void S_Init (void)
 {
+  Con_Printf("\nSound Initialization\n");
 
-	Con_Printf("\nSound Initialization\n");
-
-	if (COM_CheckParm("-nosound"))
-		return;
-
-	if (COM_CheckParm("-simsound"))
-		fakedma = true;
-
-	Cmd_AddCommand("play", S_Play);
-	Cmd_AddCommand("playvol", S_PlayVol);
-	Cmd_AddCommand("stopsound", S_StopAllSoundsC);
-	Cmd_AddCommand("soundlist", S_SoundList);
-	Cmd_AddCommand("soundinfo", S_SoundInfo_f);
-
-	Cvar_RegisterVariable(&nosound);
-	Cvar_RegisterVariable(&volume);
-	Cvar_RegisterVariable(&precache);
-	Cvar_RegisterVariable(&loadas8bit);
-	Cvar_RegisterVariable(&bgmvolume);
-	Cvar_RegisterVariable(&bgmbuffer);
-	Cvar_RegisterVariable(&ambient_level);
-	Cvar_RegisterVariable(&ambient_fade);
-	Cvar_RegisterVariable(&snd_noextraupdate);
-	Cvar_RegisterVariable(&snd_show);
-	Cvar_RegisterVariable(&_snd_mixahead);
-
-	if (host_parms.memsize < 0x800000)
-	{
-		Cvar_Set ("loadas8bit", "1");
-		Con_Printf ("loading all sounds as 8bit\n");
-	}
-
-
-
-	snd_initialized = true;
-
-	S_Startup ();
-
-	SND_InitScaletable ();
-
-	known_sfx = Hunk_AllocName (MAX_SFX*sizeof(sfx_t), "sfx_t");
-	num_sfx = 0;
-
-// create a piece of DMA memory
-
-	if (fakedma)
-	{
-		shm = (void *) Hunk_AllocName(sizeof(*shm), "shm");
-		shm->splitbuffer = 0;
-		shm->samplebits = 16;
-		shm->speed = 22050;
-		shm->channels = 2;
-		shm->samples = 32768;
-		shm->samplepos = 0;
-		shm->soundalive = true;
-		shm->gamealive = true;
-		shm->submission_chunk = 1;
-		shm->buffer = Hunk_AllocName(1<<16, "shmbuf");
-	}
-
-	if ( shm ) {
-		Con_Printf ("Sound sampling rate: %i\n", shm->speed);
-	}
-
-	// provides a tick sound until washed clean
-
-//	if (shm->buffer)
-//		shm->buffer[4] = shm->buffer[5] = 0x7f;	// force a pop for debugging
-
-	ambient_sfx[AMBIENT_WATER] = S_PrecacheSound ("ambience/water1.wav");
-	ambient_sfx[AMBIENT_SKY] = S_PrecacheSound ("ambience/wind2.wav");
-
-	S_StopAllSounds (true);
 }
 
 
@@ -248,22 +176,7 @@ void S_Init (void)
 // =======================================================================
 
 void S_Shutdown(void)
-{
-
-	if (!sound_started)
-		return;
-
-	if (shm)
-		shm->gamealive = 0;
-
-	shm = 0;
-	sound_started = 0;
-
-	if (!fakedma)
-	{
-		SNDDMA_Shutdown();
-	}
-}
+{}
 
 
 // =======================================================================

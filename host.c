@@ -22,6 +22,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "r_local.h"
 
+#include <signal.h>
+#include <execinfo.h>
+
 /*
 
 A server can allways be started, even if the system started out as a client
@@ -630,6 +633,13 @@ Host_Frame
 Runs all active servers
 ==================
 */
+double lt_ = 0.0;
+static double timestamp() {
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  return t.tv_sec + (((double)t.tv_usec)*1e-6);
+}
+
 void _Host_Frame (float time)
 {
 	static double		time1 = 0;
@@ -722,7 +732,17 @@ void _Host_Frame (float time)
 		Con_Printf ("%3i tot %3i server %3i gfx %3i snd\n",
 					pass1+pass2+pass3, pass1, pass2, pass3);
 	}
-	
+	if((host_framecount & 255) == 0) {
+	  if(host_framecount == 0) {
+	    lt_ = timestamp();
+	  }
+	  else {
+	    double t = timestamp();
+	    double fps = 256.0 / (t-lt_);
+	    printf("host_framecount = %d, %g fps\n", host_framecount, fps);
+	    lt_ = t;
+	  }
+	}
 	host_framecount++;
 }
 
@@ -827,6 +847,22 @@ void Host_InitVCR (quakeparms_t *parms)
 	
 }
 
+#define BT_SZ 64
+static void* bt[BT_SZ] = {NULL};
+
+void catchSIGSEGV(int n) {
+  int i,n_bt;
+  n_bt = backtrace(bt, BT_SZ);
+  
+  char **str = backtrace_symbols(bt, n_bt);
+  for(i = 0; i < n_bt; i++) {
+    printf("%p : %s\n", bt[i], str[i]);
+  }
+  exit(-1);
+  //int backtrace(void *buffer[.size], int size);
+  //char **backtrace_symbols(void *const buffer[.size], int size); 
+}
+
 /*
 ====================
 Host_Init
@@ -861,8 +897,11 @@ void Host_Init (quakeparms_t *parms)
 	Host_InitLocal ();
 	W_LoadWadFile ("gfx.wad");
 	Key_Init ();
-	Con_Init ();	
-	M_Init ();	
+
+	signal(SIGSEGV, catchSIGSEGV);
+	
+	Con_Init ();
+	M_Init ();
 	PR_Init ();
 	Mod_Init ();
 	NET_Init ();
@@ -882,40 +921,24 @@ void Host_Init (quakeparms_t *parms)
 		if (!host_colormap)
 			Sys_Error ("Couldn't load gfx/colormap.lmp");
 
-#ifndef _WIN32 // on non win32, mouse comes before video for security reasons
-		IN_Init ();
-#endif
-		VID_Init (host_basepal);
+		printf("here %s:%d\n", __PRETTY_FUNCTION__, __LINE__);	
 
+		IN_Init ();
+		VID_Init (host_basepal);
 		Draw_Init ();
 		SCR_Init ();
 		R_Init ();
-#ifndef	_WIN32
-	// on Win32, sound initialization has to come before video initialization, so we
-	// can put up a popup if the sound hardware is in use
-		S_Init ();
-#else
-
-#ifdef	GLQUAKE
-	// FIXME: doesn't use the new one-window approach yet
-		S_Init ();
-#endif
-
-#endif	// _WIN32
+		//S_Init ();
+		//printf("here %s:%d\n", __PRETTY_FUNCTION__, __LINE__);			
 		CDAudio_Init ();
 		Sbar_Init ();
-		CL_Init ();
-#ifdef _WIN32 // on non win32, mouse comes before video for security reasons
-		IN_Init ();
-#endif
-	}
+		CL_Init ();	
 
+	}
 	Cbuf_InsertText ("exec quake.rc\n");
         IN_MLookDown();
-
 	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");
 	host_hunklevel = Hunk_LowMark ();
-
 	host_initialized = true;
 	
 	Sys_Printf ("========Quake Initialized=========\n");	
