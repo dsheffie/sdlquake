@@ -232,23 +232,7 @@ int Sys_FileRead (int handle, void *dst, int count)
 
 int Sys_FileWrite (int handle, void *src, int count)
 {
-	char *data;
-	int size, done;
-
-	size = 0;
-	if ( handle >= 0 ) {
-		data = src;
-		while ( count > 0 ) {
-			done = fread (data, 1, count, sys_handles[handle]);
-			if ( done == 0 ) {
-				break;
-			}
-			data += done;
-			count -= done;
-			size += done;
-		}
-	}
-	return size;
+  return fwrite (src, 1, count, sys_handles[handle]);
 }
 
 int	Sys_FileTime (char *path)
@@ -400,7 +384,7 @@ int main (int c, char **v)
     oldtime = Sys_FloatTime () - 0.1;
     while (1)
     {
-// find time spent rendering last frame
+	  // find time spent rendering last frame
         newtime = Sys_FloatTime ();
         time = newtime - oldtime;
 
@@ -409,7 +393,7 @@ int main (int c, char **v)
             if (time < sys_ticrate.value && (vcrFile == -1 || recording) )
             {
 			  usleep(1000);
-                continue;       // not time to run a server only tic yet
+			  continue;       // not time to run a server only tic yet
             }
             time = sys_ticrate.value;
         }

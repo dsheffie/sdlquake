@@ -15,11 +15,13 @@ unsigned short  d_8to16table[256];
 int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
 byte    *VGA_pagebase;
 
+
 /*static SDL_Surface *screen = NULL; */
 
 static qboolean mouse_avail;
 static float   mouse_x, mouse_y;
 static int mouse_oldbuttonstate = 0;
+
 
 // No support for option menus
 void (*vid_menudrawfn)(void) = NULL;
@@ -56,20 +58,43 @@ static void* mmap_mem(size_t n_bytes) {
 
 
 
+uint32_t update_crc(uint32_t crc, uint8_t *buf, size_t len) {
+  uint32_t c = crc;
+  size_t n;
+  int k;
+  static const uint32_t POLY = 0x82f63b78;
+  for(n=0;n<len;n++) {
+    uint8_t b = buf[n];
+    c ^= b;
+    for(k = 0; k < 8; k++) {
+      c = c & 1 ? (c>>1) ^ POLY : c>>1;
+    }
+  }
+  return c;
+}
+
+uint32_t crc32(uint8_t *buf, size_t len) {
+  return update_crc(~0x0, buf, len) ^ (~0x0);
+}
+
+typedef struct color16 {
+  uint16_t b : 5;
+  uint16_t g : 6;
+  uint16_t r : 5;
+} color16_t;
+
+color16_t palette_[256];
+static color16_t *fb = NULL;
+
 void    VID_SetPalette (unsigned char *palette)
 {
-#if 0
-    int i;
-    SDL_Color colors[256];
-
-    for ( i=0; i<256; ++i )
+  int i;
+  for ( i=0; i<256; ++i )
     {
-        colors[i].r = *palette++;
-        colors[i].g = *palette++;
-        colors[i].b = *palette++;
+      palette_[i].r = (*palette++) / 8;
+      palette_[i].g = (*palette++) / 4;
+      palette_[i].b = (*palette++) / 8;
     }
-    SDL_SetColors(screen, colors, 0, 256);
-#endif
 }
 
 void    VID_ShiftPalette (unsigned char *palette)
@@ -155,8 +180,10 @@ void    VID_Init (unsigned char *palette)
     VGA_rowbytes = vid.rowbytes = screen->pitch;
 #endif
 
-    VGA_pagebase = vid.buffer = mmap_mem(vid.width*vid.height*sizeof(uint16_t));
-    VGA_rowbytes = vid.rowbytes = vid.width*sizeof(uint16_t);
+    VGA_pagebase = vid.buffer = malloc(vid.width*vid.height*sizeof(uint8_t));
+    VGA_rowbytes = vid.rowbytes = vid.width*sizeof(uint8_t);
+
+    fb = mmap_mem(vid.width*vid.height*sizeof(color16_t));
     
     vid.conbuffer = vid.buffer;
     vid.conrowbytes = vid.rowbytes;
@@ -304,6 +331,13 @@ void IN_Move (usercmd_t *cmd)
             cmd->forwardmove -= m_forward.value * mouse_y;
     }
     mouse_x = mouse_y = 0.0;
+}
+
+void UpdateDisplayNow() {
+  int i = 0;
+  for(i = 0; i < (vid.width*vid.height); i++) {
+    fb[i] = palette_[VGA_pagebase[i]];
+  }
 }
 
 /*

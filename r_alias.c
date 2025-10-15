@@ -704,8 +704,12 @@ void R_AliasDrawModel (alight_t *plighting)
 {
 	finalvert_t		finalverts[MAXALIASVERTS +
 						((CACHE_SIZE - 1) / sizeof(finalvert_t)) + 1];
+	
 	auxvert_t		auxverts[MAXALIASVERTS];
 
+	memset(auxverts, 0, sizeof(auxverts));
+	memset(finalverts,0, sizeof(finalverts));
+	
 	r_amodels_drawn++;
 
 // cache align

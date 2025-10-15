@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 #include "d_local.h"	// FIXME: shouldn't need to include this
 
+#include <assert.h>
+
 #define MAXLEFTCLIPEDGES		100
 
 // !!! if these are changed, they must be changed in asm_draw.h too !!!
@@ -231,7 +233,7 @@ void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 	u_check = edge->u;
 	if (edge->surfs[0])
 		u_check++;	// sort trailers after leaders
-
+			 
 	if (!newedges[v] || newedges[v]->u >= u_check)
 	{
 		edge->next = newedges[v];
@@ -246,7 +248,10 @@ void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 		pcheck->next = edge;
 	}
 
+	/* printf("removeedge[%d]= %p, edge = %p\n", v2, removeedges[v2], edge); */
 	edge->nextremove = removeedges[v2];
+	assert(v2 < MAXHEIGHT);
+
 	removeedges[v2] = edge;
 }
 

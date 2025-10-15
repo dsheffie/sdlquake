@@ -43,8 +43,8 @@ surf_t	*surfaces, *surface_p, *surf_max;
 // pointer is greater than another one, it should be drawn in front
 // surfaces[1] is the background, and is used as the active surface stack
 
-edge_t	*newedges[MAXHEIGHT];
-edge_t	*removeedges[MAXHEIGHT];
+edge_t	*newedges[MAXHEIGHT] = {NULL};
+edge_t	*removeedges[MAXHEIGHT] = {NULL};
 
 espan_t	*span_p, *max_span_p;
 
