@@ -333,11 +333,41 @@ void IN_Move (usercmd_t *cmd)
     mouse_x = mouse_y = 0.0;
 }
 
+
+static inline uint64_t extract_byte(uint64_t u64, int b) {
+  return (u64 >> (b * 8))& 0xff;
+}
+
+union pixel4x16bpp {
+  struct {
+    struct color16 p0;
+    struct color16 p1;
+    struct color16 p2;
+    struct color16 p3;
+  } packed;
+  uint64_t u64;
+};
+
+
 void UpdateDisplayNow() {
   int i = 0;
-  for(i = 0; i < (vid.width*vid.height); i++) {
-    fb[i] = palette_[VGA_pagebase[i]];
+  union pixel4x16bpp pA,pB;  
+  for(i = 0; i < (vid.width*vid.height); i+=8) {
+    uint64_t p8 = *(uint64_t*)(&VGA_pagebase[i]);
+    pA.packed.p0 = palette_[extract_byte(p8, 0)];
+    pA.packed.p1 = palette_[extract_byte(p8, 1)];
+    pA.packed.p2 = palette_[extract_byte(p8, 2)];
+    pA.packed.p3 = palette_[extract_byte(p8, 3)];    
+    pB.packed.p0 = palette_[extract_byte(p8, 4)];
+    pB.packed.p1 = palette_[extract_byte(p8, 5)];
+    pB.packed.p2 = palette_[extract_byte(p8, 6)];
+    pB.packed.p3 = palette_[extract_byte(p8, 7)];    
+    *(uint64_t*)(&fb[i+0]) = pA.u64;
+    *(uint64_t*)(&fb[i+4]) = pB.u64;    
+    
+    //fb[i] = palette_[VGA_pagebase[i]];
   }
+  asm volatile ("fence.i" ::: "memory");
 }
 
 /*
