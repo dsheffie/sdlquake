@@ -370,6 +370,25 @@ void UpdateDisplayNow() {
   asm volatile ("fence.i" ::: "memory");
 }
 
+#define HACKY_FP
+
+#ifdef HACKY_FP
+__attribute__ ((naked)) float __mulsf3(float a, float b) {
+  __asm__ volatile (".insn 0x08b50533");
+  __asm__ volatile ("ret");
+}
+
+__attribute__ ((naked)) float __addsf3(float a, float b) {
+  __asm__ volatile (".insn 0x04b50533");
+  __asm__ volatile ("ret");
+}  
+
+__attribute__ ((naked)) float __subsf3(float a, float b) {
+  __asm__ volatile (".insn 0x06b50533");
+  __asm__ volatile ("ret");
+}  
+#endif
+
 /*
 ================
 Sys_ConsoleInput

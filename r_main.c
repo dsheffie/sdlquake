@@ -229,11 +229,7 @@ void R_Init (void)
 
 	R_InitParticles ();
 
-// TODO: collect 386-specific code in one place
-#if	id386
-	Sys_MakeCodeWriteable ((long)R_EdgeCodeStart,
-					     (long)R_EdgeCodeEnd - (long)R_EdgeCodeStart);
-#endif	// id386
+
 
 	D_Init ();
 }
