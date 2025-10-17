@@ -283,6 +283,11 @@ typedef struct
 
 //=============================================================================
 
+typedef union {
+	float f;
+	int i;
+	unsigned int ui;
+} floatint_t;
 
 
 extern qboolean noclip_anglehack;

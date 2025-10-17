@@ -31,6 +31,29 @@ int nanmask = 255<<23;
 
 #define DEG2RAD( a ) ( a * M_PI ) / 180.0F
 
+float Q_rsqrt( float number )
+{
+  floatint_t t;
+  float x2, y;
+  const float threehalfs = 1.5F;
+  
+  x2 = number * 0.5F;
+  t.f  = number;
+  t.i  = 0x5f3759df - ( t.i >> 1 );               // what the fuck?
+  y  = t.f;
+  y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+  
+  return y;
+}
+
+float Q_fabs( float f ) {
+  floatint_t fi;
+  fi.f = f;
+  fi.i &= 0x7FFFFFFF;
+  return fi.f;
+}
+
+
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 {
 	float d;
@@ -65,11 +88,12 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	*/
 	for ( pos = 0, i = 0; i < 3; i++ )
 	{
-		if ( fabs( src[i] ) < minelem )
-		{
-			pos = i;
-			minelem = fabs( src[i] );
-		}
+	  float a = Q_fabs( src[i] );
+	  if ( a < minelem )
+	    {
+	      pos = i;
+	      minelem = a;
+	    }
 	}
 	tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
 	tempvec[pos] = 1.0F;
@@ -367,8 +391,6 @@ void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
-double sqrt(double x);
-
 vec_t Length(vec3_t v)
 {
 	int		i;
@@ -377,28 +399,27 @@ vec_t Length(vec3_t v)
 	length = 0;
 	for (i=0 ; i< 3 ; i++)
 		length += v[i]*v[i];
-	length = sqrt (length);		// FIXME
+	length = sqrtf(length);		// FIXME
 
 	return length;
 }
 
+
+
 float VectorNormalize (vec3_t v)
 {
-	float	length, ilength;
-
-	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-	length = sqrt (length);		// FIXME
-
-	if (length)
-	{
-		ilength = 1/length;
-		v[0] *= ilength;
-		v[1] *= ilength;
-		v[2] *= ilength;
-	}
-		
-	return length;
-
+  float	length, ilength;
+  length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+  if (length)
+    {
+      //length = sqrtf(length);		// FIXME	  
+      //ilength = 1/length;
+      ilength = Q_rsqrt(length);
+      v[0] *= ilength;
+      v[1] *= ilength;
+      v[2] *= ilength;
+    }
+  return length;
 }
 
 void VectorInverse (vec3_t v)

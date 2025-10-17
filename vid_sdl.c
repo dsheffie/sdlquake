@@ -113,8 +113,15 @@ void    VID_Init (unsigned char *palette)
     uint8_t video_bpp;
     uint16_t video_w, video_h;
     uint32_t flags;
-
-
+    uint8_t buffer[80];
+    
+    sprintf(buffer, "/proc/%d/maps", getpid());
+    FILE *fp = fopen(buffer, "r");
+    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        printf("%s", buffer); // Print the line to the console
+    }
+    fclose(fp);
+    
     // Set up display mode (width and height)
     vid.width = BASEWIDTH;
     vid.height = BASEHEIGHT;
@@ -386,7 +393,18 @@ __attribute__ ((naked)) float __addsf3(float a, float b) {
 __attribute__ ((naked)) float __subsf3(float a, float b) {
   __asm__ volatile (".insn 0x06b50533");
   __asm__ volatile ("ret");
-}  
+}
+
+__attribute__ ((naked)) float __floatsisf(int) {
+  __asm__ volatile (".insn 0x60651513");
+  __asm__ volatile ("ret");
+}
+
+__attribute__ ((naked)) int __fixsfsi(float) {
+  __asm__ volatile (".insn 0x60751513");
+  __asm__ volatile ("ret");
+}
+
 #endif
 
 /*
