@@ -347,3 +347,8 @@ inline static uint64_t rdcycle(void) {
     return cycles;
 }
 
+inline static uint64_t rdinstret(void) {
+    uint64_t ret;
+    asm volatile ("rdinstret %0" : "=r" (ret));
+    return ret;
+}
