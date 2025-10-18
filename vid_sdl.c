@@ -103,8 +103,6 @@ void    VID_ShiftPalette (unsigned char *palette)
 }
 
 
-
-
 void    VID_Init (unsigned char *palette)
 {
     int pnum, chunk;
@@ -114,13 +112,14 @@ void    VID_Init (unsigned char *palette)
     uint16_t video_w, video_h;
     uint32_t flags;
     uint8_t buffer[80];
-    
+    int i = 0;
     sprintf(buffer, "/proc/%d/maps", getpid());
     FILE *fp = fopen(buffer, "r");
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
         printf("%s", buffer); // Print the line to the console
     }
     fclose(fp);
+
     
     // Set up display mode (width and height)
     vid.width = BASEWIDTH;
@@ -404,8 +403,53 @@ __attribute__ ((naked)) int __fixsfsi(float x) {
   __asm__ volatile (".insn 0x60751513");
   __asm__ volatile ("ret");
 }
-
 #endif
+
+typedef struct {
+  uint32_t f : 23;
+  uint32_t e : 8;
+  uint32_t s : 1;
+} flt_t;
+
+typedef union {
+  float f;
+  flt_t ff;
+} floatint;
+
+#include "fp32_recip.h"
+
+#if 0
+float __divsf3(float a, float b) {
+  int r,e,n;
+  floatint fia, fib;
+  float y;
+  fia.f = a;
+  fib.f = b;
+  /* should we round up? */
+  r = (fib.ff.f>>22) & 3;
+  n = (fib.ff.s);
+  /* unconditionally clear sign */
+  fib.ff.s = 0;
+  
+  e = r ? fib.ff.e+1 : fib.ff.e;
+  /* clamp guess */
+  y = recip_guess[e>256?256:e];
+  /* do 4 newton raphson iterations */
+  y = y * (2.0f - (fib.f*y));
+  y = y * (2.0f - (fib.f*y));
+  y = y * (2.0f - (fib.f*y)); 
+  y = y * (2.0f - (fib.f*y)); 
+
+  if(n) {
+    y = -y;
+  }
+  y *= a;
+  return y;
+}
+#endif
+
+
+
 
 /*
 ================

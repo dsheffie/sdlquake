@@ -272,35 +272,40 @@ void Sys_DebugLog(char *file, char *fmt, ...)
     fclose(fp);
 }
 
+#if 0
 double Sys_FloatTime (void)
 {
-#ifdef __WIN32__
-
-	static int starttime = 0;
-
-	if ( ! starttime )
-		starttime = clock();
-
-	return (clock()-starttime)*1.0/1024;
-
-#else
-
-    struct timeval tp;
-    struct timezone tzp; 
-    static int      secbase; 
-    
-    gettimeofday(&tp, &tzp);  
-
-    if (!secbase)
-    {
-        secbase = tp.tv_sec;
-        return tp.tv_usec/1000000.0;
+  struct timeval tp;
+  struct timezone tzp; 
+  static int      secbase; 
+  
+  gettimeofday(&tp, &tzp);  
+  
+  if (!secbase)
+	{
+	  secbase = tp.tv_sec;
+	  return tp.tv_usec/1000000.0;
     }
-
-    return (tp.tv_sec - secbase) + tp.tv_usec/1000000.0;
-
-#endif
+  
+  return (tp.tv_sec - secbase) + tp.tv_usec/1000000.0;
 }
+#endif
+
+
+double Sys_FloatTime (void)
+{
+  static uint64_t startcycle = 0;
+  uint64_t now = rdcycle();
+  
+  if (startcycle == 0)
+	{
+	  startcycle = now;
+	  return ((double)now)/1e8;
+    }
+  
+  return ((double)(now-startcycle))/1e8;
+}
+
 
 // =======================================================================
 // Sleeps for microseconds

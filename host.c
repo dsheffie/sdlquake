@@ -636,12 +636,7 @@ Host_Frame
 Runs all active servers
 ==================
 */
-double lt_ = 0.0;
-static double timestamp() {
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  return t.tv_sec + (((double)t.tv_usec)*1e-6);
-}
+static uint64_t lt_ = 0;
 
 void _Host_Frame (float time)
 {
@@ -737,12 +732,13 @@ void _Host_Frame (float time)
 	}
 	if((host_framecount & 255) == 0) {
 	  if(host_framecount == 0) {
-	    lt_ = timestamp();
+	    lt_ = rdcycle();
 	  }
 	  else {
-	    double t = timestamp();
-	    double fps = 256.0 / (t-lt_);
-	    printf("host_framecount = %d, %g fps\n", host_framecount, fps);
+	    uint64_t t = rdcycle();
+	    double c = ((double)(t-lt_))*1e-8;
+	    double fps = 256.0 / c;
+	    printf("host_framecount = %d, %g fps, %lu cycles\n", host_framecount, fps, t-lt_);
 	    lt_ = t;
 	    /* SCR_ScreenShot_f(); */
 	  }
