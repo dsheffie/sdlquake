@@ -395,12 +395,12 @@ __attribute__ ((naked)) float __subsf3(float a, float b) {
   __asm__ volatile ("ret");
 }
 
-__attribute__ ((naked)) float __floatsisf(int) {
+__attribute__ ((naked)) float __floatsisf(int x) {
   __asm__ volatile (".insn 0x60651513");
   __asm__ volatile ("ret");
 }
 
-__attribute__ ((naked)) int __fixsfsi(float) {
+__attribute__ ((naked)) int __fixsfsi(float x) {
   __asm__ volatile (".insn 0x60751513");
   __asm__ volatile ("ret");
 }

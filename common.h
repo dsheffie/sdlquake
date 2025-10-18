@@ -19,6 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // comndef.h  -- general definitions
 
+#include <string.h>
+
 #if !defined BYTE_DEFINED
 typedef unsigned char 		byte;
 #define BYTE_DEFINED 1
@@ -121,19 +123,19 @@ float MSG_ReadAngle (void);
 
 //============================================================================
 
-void Q_memset (void *dest, int fill, int count);
-void Q_memcpy (void *dest, void *src, int count);
-int Q_memcmp (void *m1, void *m2, int count);
-void Q_strcpy (char *dest, char *src);
-void Q_strncpy (char *dest, char *src, int count);
-int Q_strlen (char *str);
+#define Q_memset memset
+#define Q_memcpy memcpy
+#define Q_memcmp memcmp
+#define Q_strcpy strcpy
+#define Q_strncpy strncpy
+#define Q_strlen strlen
 char *Q_strrchr (char *s, char c);
 void Q_strcat (char *dest, char *src);
 int Q_strcmp (char *s1, char *s2);
 int Q_strncmp (char *s1, char *s2, int count);
 int Q_strcasecmp (char *s1, char *s2);
 int Q_strncasecmp (char *s1, char *s2, int n);
-int	Q_atoi (char *str);
+int Q_atoi (char *str);
 float Q_atof (char *str);
 
 //============================================================================

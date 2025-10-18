@@ -332,6 +332,8 @@ int UDP_StringToAddr (char *string, struct qsockaddr *addr)
 
 //=============================================================================
 
+static const char local_ip[] = "127.0.0.1";
+
 int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 {
 	int addrlen = sizeof(struct qsockaddr);
@@ -340,7 +342,7 @@ int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 	Q_memset(addr, 0, sizeof(struct qsockaddr));
 	getsockname(socket, (struct sockaddr *)addr, &addrlen);
 	a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
-	if (a == 0 || a == inet_addr("127.0.0.1"))
+	if (a == 0 || a == inet_addr(local_ip))
 		((struct sockaddr_in *)addr)->sin_addr.s_addr = myAddr;
 
 	return 0;

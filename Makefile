@@ -6,8 +6,8 @@ OBJ = cd_sdl.o chase.o cl_demo.o cl_input.o cl_main.o cl_parse.o cl_tent.o cmd.o
     snd_sdl.o sv_main.o sv_move.o sv_phys.o sv_user.o sys_sdl.o vid_sdl.o view.o wad.o world.o zone.o
 
 EXE = sdlquake
-ISA = -march=rv64ima_zicond_zba_zbb_zifencei
-CFLAGS =-O3 $(ISA) -DELF -DSDL -D_GNU_SOURCE=1 -D_REENTRANT -MMD -std=gnu89
+ISA = -march=rv64ima_zicond_zba_zbb_zifencei 
+CFLAGS =-O3 $(ISA) -DSDL -fno-strict-aliasing -MMD -std=gnu89 -flto
 CC = /home/dsheffie/buildroot/output/host/bin/riscv64-buildroot-linux-gnu-gcc
 
 all: $(OBJ)

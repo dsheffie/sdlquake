@@ -109,10 +109,6 @@ void PerpendicularVector( vec3_t dst, const vec3_t src )
 	VectorNormalize( dst );
 }
 
-#ifdef _WIN32
-#pragma optimize( "", off )
-#endif
-
 
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
@@ -169,23 +165,14 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 	}
 }
 
-#ifdef _WIN32
-#pragma optimize( "", on )
-#endif
 
 /*-----------------------------------------------------------------*/
 
 
 float	anglemod(float a)
 {
-#if 0
-	if (a >= 0)
-		a -= 360*(int)(a/360);
-	else
-		a += 360*( 1 + (int)(-a/360) );
-#endif
-	a = (360.0/65536) * ((int)(a*(65536/360.0)) & 65535);
-	return a;
+  a = (360.0/65536) * ((int)(a*(65536/360.0)) & 65535);
+  return a;
 }
 
 /*
@@ -360,7 +347,7 @@ void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc)
 
 vec_t _DotProduct (vec3_t v1, vec3_t v2)
 {
-	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+  return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 }
 
 void _VectorSubtract (vec3_t veca, vec3_t vecb, vec3_t out)
