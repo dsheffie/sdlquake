@@ -27,22 +27,6 @@ static int mouse_oldbuttonstate = 0;
 void (*vid_menudrawfn)(void) = NULL;
 void (*vid_menukeyfn)(int key) = NULL;
 
-#define __asm_syscall(...) \
-        __asm__ __volatile__ ("ecall\n\t" \
-        : "+r"(a0) : __VA_ARGS__ : "memory"); \
-	return a0; \
-
-#ifdef __aarch64__
-static inline long va2pa(void *a) { return 0x600000; }
-#else
-static inline long va2pa(void *a)
-{
-  register long a7 __asm__("a7") = 257;
-  register long a0 __asm__("a0") = (uintptr_t)a;
-  __asm_syscall("r"(a7), "0"(a0))
-}
-#endif
-
 
 static void* mmap_mem(size_t n_bytes) {
   void *ptr = NULL;

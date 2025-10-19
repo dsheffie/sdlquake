@@ -740,7 +740,7 @@ void _Host_Frame (float time)
 	    uint64_t i = rdinstret();
 	    double c = ((double)(t-lt_))*1e-8;
 	    double fps = 256.0 / c;
-	    printf("host_framecount = %d, %g fps, %lu cycles, %g ipc\n", host_framecount, fps, t-lt_, ((double)(li_-i))/(t-lt_)  );
+	    printf("host_framecount = %d, %g fps, %lu cycles, %g ipc\n", host_framecount, fps, t-lt_, ((double)(i-li_))/(t-lt_)  );
 	    lt_ = t;
 	    li_ = i;
 	    /* SCR_ScreenShot_f(); */

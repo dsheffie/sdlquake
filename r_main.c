@@ -1044,9 +1044,10 @@ SetVisibilityByPassages ();
 
 void R_RenderView (void)
 {
+#ifndef __clang__
 	int		dummy;
 	int		delta;
-	
+
 	delta = (byte *)&dummy - r_stack_start;
 	if (delta < -10000 || delta > 10000)
 		Sys_Error ("R_RenderView: called without enough stack");
@@ -1059,7 +1060,7 @@ void R_RenderView (void)
 
 	if ( (long)(&r_warpbuffer) & 3 )
 		Sys_Error ("Globals are missaligned");
-
+#endif
 	R_RenderView_ ();
 }
 
