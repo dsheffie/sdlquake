@@ -16,6 +16,8 @@ int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
 byte    *VGA_pagebase;
 
 
+static char *membase = NULL;
+
 /*static SDL_Surface *screen = NULL; */
 
 static qboolean mouse_avail;
@@ -27,8 +29,16 @@ static int mouse_oldbuttonstate = 0;
 void (*vid_menudrawfn)(void) = NULL;
 void (*vid_menukeyfn)(int key) = NULL;
 
+size_t n_pow2(size_t x) {
+  size_t y = 1;
+  while(y < x) {
+    y *= 2;
+  }
+  return y;
+}
 
 static void* mmap_mem(size_t n_bytes) {
+  n_bytes = n_pow2(n_bytes);
   void *ptr = NULL;
   if(n_bytes > getpagesize()) {
     ptr = mmap(0, n_bytes, PROT_READ|PROT_WRITE, MAP_ANON | MAP_PRIVATE | MAP_HUGETLB, -1, 0);
@@ -61,24 +71,24 @@ uint32_t crc32(uint8_t *buf, size_t len) {
   return update_crc(~0x0, buf, len) ^ (~0x0);
 }
 
-typedef struct color16 {
-  uint16_t b : 5;
-  uint16_t g : 6;
-  uint16_t r : 5;
-} color16_t;
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} __attribute__((__packed__)) color24_t;
 
-color16_t palette_[256];
-static color16_t *fb = NULL;
+static color24_t *palette_ = NULL;
 
 void    VID_SetPalette (unsigned char *palette)
 {
-  int i;
-  for ( i=0; i<256; ++i )
-    {
-      palette_[i].r = (*palette++) / 8;
-      palette_[i].g = (*palette++) / 4;
-      palette_[i].b = (*palette++) / 8;
-    }
+  //int i;
+  memcpy(palette_, palette, 256*sizeof(color24_t));
+  //for ( i=0; i<256; ++i )
+  //{
+  //  palette_[i].r = (*palette++);
+  //  palette_[i].g = (*palette++);
+  //   palette_[i].b = (*palette++);
+  // }
 }
 
 void    VID_ShiftPalette (unsigned char *palette)
@@ -137,27 +147,9 @@ void    VID_Init (unsigned char *palette)
     }
 
     // Set video width, height and flags
-#if 0
-    flags = (SDL_SWSURFACE|SDL_HWPALETTE|SDL_FULLSCREEN);
 
-    
-    if ( COM_CheckParm ("-fullscreen") )
-        flags |= SDL_FULLSCREEN;
 
-    if ( COM_CheckParm ("-window") ) {
-        flags &= ~SDL_FULLSCREEN;
-    }
-#endif
-    // Initialize display
-#if 0
-    if (!(screen = SDL_SetVideoMode(vid.width, vid.height, 8, flags)))
-        Sys_Error("VID: Couldn't set video mode: %s\n", SDL_GetError());
-#endif
 
-    VID_SetPalette(palette);
-#if 0
-    SDL_WM_SetCaption("sdlquake","sdlquake");
-#endif
     // now know everything we need to know about the buffer
     VGA_width = vid.conwidth = vid.width;
     VGA_height = vid.conheight = vid.height;
@@ -165,16 +157,15 @@ void    VID_Init (unsigned char *palette)
     vid.numpages = 1;
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
-#if 0
-    VGA_pagebase = vid.buffer = screen->pixels;
-    VGA_rowbytes = vid.rowbytes = screen->pitch;
-#endif
 
-    VGA_pagebase = vid.buffer = malloc(vid.width*vid.height*sizeof(uint8_t));
+    size_t sz = (2*vid.width*vid.height) + 768;
+    membase = (char*)mmap_mem(sz);
+    
+    VGA_pagebase = vid.buffer = (pixel_t*)(membase);
     VGA_rowbytes = vid.rowbytes = vid.width*sizeof(uint8_t);
 
-    fb = mmap_mem(vid.width*vid.height*sizeof(color16_t));
-    
+    palette_ = (color24_t*)&membase[vid.width*vid.height];
+    VID_SetPalette(palette);      
     vid.conbuffer = vid.buffer;
     vid.conrowbytes = vid.rowbytes;
     vid.direct = 0;
@@ -188,8 +179,7 @@ void    VID_Init (unsigned char *palette)
         Sys_Error ("Not enough memory for video mode\n");
 
     // initialize the cache memory 
-        cache = (byte *) d_pzbuffer
-                + vid.width * vid.height * sizeof (*d_pzbuffer);
+    cache = (byte *) d_pzbuffer + vid.width * vid.height * sizeof (*d_pzbuffer);
     D_InitCaches (cache, cachesize);
 
 
@@ -328,6 +318,7 @@ static inline uint64_t extract_byte(uint64_t u64, int b) {
   return (u64 >> (b * 8))& 0xff;
 }
 
+#if 0
 union pixel4x16bpp {
   struct {
     struct color16 p0;
@@ -337,9 +328,11 @@ union pixel4x16bpp {
   } packed;
   uint64_t u64;
 };
+#endif
 
 
 void UpdateDisplayNow() {
+#if 0
   int i = 0;
   union pixel4x16bpp pA,pB;  
   for(i = 0; i < (vid.width*vid.height); i+=8) {
@@ -354,10 +347,9 @@ void UpdateDisplayNow() {
     pB.packed.p3 = palette_[extract_byte(p8, 7)];    
     *(uint64_t*)(&fb[i+0]) = pA.u64;
     *(uint64_t*)(&fb[i+4]) = pB.u64;    
-    
-    //fb[i] = palette_[VGA_pagebase[i]];
   }
-  asm volatile ("fence.i" ::: "memory");
+#endif
+  asm volatile ("fence.i" ::: "memory"); 
 }
 
 #define HACKY_FP
