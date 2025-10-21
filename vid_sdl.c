@@ -394,7 +394,7 @@ typedef union {
 
 #include "fp32_recip.h"
 
-#if 0
+#if 1
 float __divsf3(float a, float b) {
   int r,e,n;
   floatint fia, fib;
@@ -414,7 +414,7 @@ float __divsf3(float a, float b) {
   y = y * (2.0f - (fib.f*y));
   y = y * (2.0f - (fib.f*y));
   y = y * (2.0f - (fib.f*y)); 
-  y = y * (2.0f - (fib.f*y)); 
+  /* y = y * (2.0f - (fib.f*y));  */
 
   if(n) {
     y = -y;
