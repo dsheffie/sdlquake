@@ -188,7 +188,7 @@ void    VID_Init (unsigned char *palette)
         Sys_Error ("Not enough memory for video mode\n");
 
     // initialize the cache memory 
-        cache = (byte *) d_pzbuffer
+    cache = (byte *) d_pzbuffer
                 + vid.width * vid.height * sizeof (*d_pzbuffer);
     D_InitCaches (cache, cachesize);
 
@@ -402,7 +402,7 @@ typedef union {
 
 #include "fp32_recip.h"
 
-#if 0
+#if 1
 float __divsf3(float a, float b) {
   int r,e,n;
   floatint fia, fib;
