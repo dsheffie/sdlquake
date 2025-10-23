@@ -284,9 +284,9 @@ typedef struct
 //=============================================================================
 
 typedef union {
-	float f;
-	int i;
-	unsigned int ui;
+  float f;
+  int i;
+  unsigned int ui;
 } floatint_t;
 
 

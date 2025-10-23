@@ -360,35 +360,6 @@ void UpdateDisplayNow() {
   asm volatile ("fence.i" ::: "memory");
 }
 
-#define HACKY_FP
-
-#ifdef HACKY_FP
-__attribute__ ((naked)) float __mulsf3(float a, float b) {
-  __asm__ volatile (".insn 0x08b50533");
-  __asm__ volatile ("ret");
-}
-
-__attribute__ ((naked)) float __addsf3(float a, float b) {
-  __asm__ volatile (".insn 0x04b50533");
-  __asm__ volatile ("ret");
-}  
-
-__attribute__ ((naked)) float __subsf3(float a, float b) {
-  __asm__ volatile (".insn 0x06b50533");
-  __asm__ volatile ("ret");
-}
-
-__attribute__ ((naked)) float __floatsisf(int x) {
-  __asm__ volatile (".insn 0x60651513");
-  __asm__ volatile ("ret");
-}
-
-__attribute__ ((naked)) int __fixsfsi(float x) {
-  __asm__ volatile (".insn 0x60751513");
-  __asm__ volatile ("ret");
-}
-#endif
-
 typedef struct {
   uint32_t f : 23;
   uint32_t e : 8;
@@ -398,6 +369,7 @@ typedef struct {
 typedef union {
   float f;
   flt_t ff;
+  uint32_t u32;
 } floatint;
 
 #include "fp32_recip.h"
@@ -409,21 +381,27 @@ float __divsf3(float a, float b) {
   float y;
   fia.f = a;
   fib.f = b;
+  n = (fib.ff.s);
+  fib.ff.s = 0;
+  float _b = fib.f;
+#if 0
   /* should we round up? */
   r = (fib.ff.f>>22) & 3;
-  n = (fib.ff.s);
   /* unconditionally clear sign */
-  fib.ff.s = 0;
-  
   e = r ? fib.ff.e+1 : fib.ff.e;
   /* clamp guess */
   y = recip_guess[e>256?256:e];
   /* do 4 newton raphson iterations */
-  y = y * (2.0f - (fib.f*y));
-  y = y * (2.0f - (fib.f*y));
-  y = y * (2.0f - (fib.f*y)); 
-  y = y * (2.0f - (fib.f*y)); 
+#endif
+  fib.u32 = 0x5f3759df - (fib.u32 >> 1);
+  y = fib.f; /* ~ 1/sqrt(x) */
+  y *= y; /* ~ 1/x */
 
+  y = y * (2.0f - (_b*y));
+   y = y * (2.0f - (_b*y)); 
+  /* y = y * (2.0f - (_b*y));  */
+  /* y = y * (2.0f - (_b*y));  */
+  
   if(n) {
     y = -y;
   }

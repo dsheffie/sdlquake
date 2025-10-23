@@ -42,7 +42,6 @@ float Q_rsqrt( float number )
   t.i  = 0x5f3759df - ( t.i >> 1 );               // what the fuck?
   y  = t.f;
   y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-  
   return y;
 }
 
