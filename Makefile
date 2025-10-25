@@ -11,12 +11,15 @@ EXE = sdlquake
 DEP = $(OBJ:.o=.d)
 
 ISA = -march=rv64ima_zicond_zba_zbb_zifencei 
-CFLAGS =-O3 $(ISA) -DSDL -fno-strict-aliasing -MMD -std=gnu89 -flto
+CFLAGS = -g -O3 $(ISA) -DSDL -fno-strict-aliasing -MMD -std=gnu89 -flto
 CC = /home/dsheffie/code/riscv-llvm/_build2/bin/clang --target=riscv64-buildroot-linux-gnu
 GCC = /home/dsheffie/buildroot/output/host/bin/riscv64-buildroot-linux-gnu-gcc
+OD = /home/dsheffie/code/riscv-llvm/_build2/bin/llvm-objdump
+LFLAGS = -static
 
 all: $(OBJ)
 	$(CC) $(CFLAGS) $(LFLAGS) $(OBJ) -o $(EXE) -lm -z max-page-size=65536
+	$(OD) -ldw $(EXE) &> $(EXE).disasm
 
 va2pa.o : va2pa.c
 	$(GCC) $(ISA) -O2 -c $<

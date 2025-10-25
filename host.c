@@ -637,6 +637,26 @@ Runs all active servers
 ==================
 */
 static uint64_t lt_ = 0, li_ = 0;
+static uint64_t t_ = 0, i_ = 0;
+static uint64_t lcc = 0, lii = 0;
+
+typedef struct {
+  uint64_t cycles;
+  uint64_t instructions;
+} frame_stat_t;
+
+
+#define N_FRAMES 2048
+
+static frame_stat_t frame_stats[N_FRAMES];
+
+void dump_frames() {
+  //int i;
+  //for(i = 0; i < (host_framecount % N_FRAMES); i++) {
+  // printf("%d,%lu,%lu\n", i, frame_stats[i].cycles, frame_stats[i].instructions);
+  //}
+  exit(-1);
+}
 
 void _Host_Frame (float time)
 {
@@ -730,14 +750,27 @@ void _Host_Frame (float time)
 		Con_Printf ("%3i tot %3i server %3i gfx %3i snd\n",
 					pass1+pass2+pass3, pass1, pass2, pass3);
 	}
+
+	
+	//printf("instructions %lu, cycles = %lu\n", ii - lii, cc -lcc);
+	  
+	//frame_stats[host_framecount % N_FRAMES].cycles = cc - lcc;
+	//frame_stats[host_framecount % N_FRAMES].instructions = ii -lii;
+	
+	//lcc = cc;
+	//lii = ii;
+	
 	if((host_framecount & 255) == 0) {
+	  uint64_t ii = rdinstret();
+	  uint64_t cc = rdcycle();
+	  
 	  if(host_framecount == 0) {
-	    lt_ = rdcycle();
-	    li_ = rdinstret();
+	    lt_ = cc;
+	    li_ = ii;
 	  }
 	  else {
-	    uint64_t t = rdcycle();
-	    uint64_t i = rdinstret();
+	    uint64_t t = cc;
+	    uint64_t i = ii;
 	    double c = ((double)(t-lt_))*1e-8;
 	    double fps = 256.0 / c;
 	    printf("host_framecount = %d, %g fps, %lu cycles, %g ipc\n", host_framecount, fps, t-lt_, ((double)(i-li_))/(t-lt_)  );

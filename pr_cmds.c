@@ -469,11 +469,9 @@ random()
 */
 void PF_random (void)
 {
-	float		num;
-		
-	num = (rand ()&0x7fff) / ((float)0x7fff);
-	
-	G_FLOAT(OFS_RETURN) = num;
+  float		num;
+  num = (rand ()&0x7fff) / ((float)0x7fff);
+  G_FLOAT(OFS_RETURN) = num;
 }
 
 /*

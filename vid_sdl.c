@@ -372,9 +372,7 @@ typedef union {
   uint32_t u32;
 } floatint;
 
-#include "fp32_recip.h"
 
-#if 1
 float __divsf3(float a, float b) {
   int r,e,n;
   floatint fia, fib;
@@ -384,23 +382,14 @@ float __divsf3(float a, float b) {
   n = (fib.ff.s);
   fib.ff.s = 0;
   float _b = fib.f;
-#if 0
-  /* should we round up? */
-  r = (fib.ff.f>>22) & 3;
-  /* unconditionally clear sign */
-  e = r ? fib.ff.e+1 : fib.ff.e;
-  /* clamp guess */
-  y = recip_guess[e>256?256:e];
-  /* do 4 newton raphson iterations */
-#endif
   fib.u32 = 0x5f3759df - (fib.u32 >> 1);
   y = fib.f; /* ~ 1/sqrt(x) */
   y *= y; /* ~ 1/x */
 
   y = y * (2.0f - (_b*y));
-   y = y * (2.0f - (_b*y)); 
-  /* y = y * (2.0f - (_b*y));  */
-  /* y = y * (2.0f - (_b*y));  */
+  y = y * (2.0f - (_b*y)); 
+  //y = y * (2.0f - (_b*y));  
+  //y = y * (2.0f - (_b*y)); 
   
   if(n) {
     y = -y;
@@ -408,7 +397,7 @@ float __divsf3(float a, float b) {
   y *= a;
   return y;
 }
-#endif
+
 
 
 
