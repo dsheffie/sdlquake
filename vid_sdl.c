@@ -27,6 +27,7 @@ static int mouse_oldbuttonstate = 0;
 void (*vid_menudrawfn)(void) = NULL;
 void (*vid_menukeyfn)(int key) = NULL;
 
+uint64_t va2pa(void *a);
 
 static void* mmap_mem(size_t n_bytes) {
   void *ptr = NULL;
@@ -95,9 +96,9 @@ void    VID_Init (unsigned char *palette)
     uint8_t video_bpp;
     uint16_t video_w, video_h;
     uint32_t flags;
-    uint8_t buffer[80];
+    char buffer[80] = {0};
     int i = 0;
-    sprintf(buffer, "/proc/%d/maps", getpid());
+    snprintf(buffer, sizeof(buffer), "/proc/%d/maps", getpid());
     FILE *fp = fopen(buffer, "r");
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
         printf("%s", buffer); // Print the line to the console
@@ -372,7 +373,6 @@ typedef union {
   uint32_t u32;
 } floatint;
 
-
 float __divsf3(float a, float b) {
   int r,e,n;
   floatint fia, fib;
@@ -382,10 +382,15 @@ float __divsf3(float a, float b) {
   n = (fib.ff.s);
   fib.ff.s = 0;
   float _b = fib.f;
+#if 0
   fib.u32 = 0x5f3759df - (fib.u32 >> 1);
   y = fib.f; /* ~ 1/sqrt(x) */
   y *= y; /* ~ 1/x */
-
+#else
+  /* approx 1/x */
+  fib.u32 = 0x7EF127EA - fib.u32;
+  y = fib.f; /* ~ 1/x */
+#endif  
   y = y * (2.0f - (_b*y));
   y = y * (2.0f - (_b*y)); 
   //y = y * (2.0f - (_b*y));  

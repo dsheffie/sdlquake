@@ -6,10 +6,10 @@
         : "+r"(a0) : __VA_ARGS__ : "memory"); \
 	return a0; \
 
-long va2pa(void *a)
+uint64_t va2pa(void *a)
 {
-  register long a7 __asm__("a7") = 257;
-  register long a0 __asm__("a0") = (uintptr_t)a;
+  register uint64_t a7 __asm__("a7") = 257;
+  register uint64_t a0 __asm__("a0") = (uintptr_t)a;
   __asm_syscall("r"(a7), "0"(a0))
 }
 
