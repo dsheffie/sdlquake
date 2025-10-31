@@ -937,12 +937,13 @@ void Host_Init (quakeparms_t *parms)
 	Host_InitLocal ();
 	W_LoadWadFile ("gfx.wad");
 	Key_Init ();
-	
+
+#if 0
 	struct sigaction act = {0};
 	act.sa_sigaction = catchSIGSEGV;
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGSEGV, &act, NULL);
-
+#endif
 	
 	Con_Init ();
 	M_Init ();

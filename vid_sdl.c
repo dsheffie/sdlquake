@@ -341,24 +341,32 @@ union pixel4x16bpp {
 
 
 void UpdateDisplayNow() {
-  int i = 0;
+  int ii = 0, jj = 0, i = 0;
   union pixel4x16bpp pA,pB;  
-  for(i = 0; i < (vid.width*vid.height); i+=8) {
-    uint64_t p8 = *(uint64_t*)(&VGA_pagebase[i]);
-    pA.packed.p0 = palette_[extract_byte(p8, 0)];
-    pA.packed.p1 = palette_[extract_byte(p8, 1)];
-    pA.packed.p2 = palette_[extract_byte(p8, 2)];
-    pA.packed.p3 = palette_[extract_byte(p8, 3)];    
-    pB.packed.p0 = palette_[extract_byte(p8, 4)];
-    pB.packed.p1 = palette_[extract_byte(p8, 5)];
-    pB.packed.p2 = palette_[extract_byte(p8, 6)];
-    pB.packed.p3 = palette_[extract_byte(p8, 7)];    
-    *(uint64_t*)(&fb[i+0]) = pA.u64;
-    *(uint64_t*)(&fb[i+4]) = pB.u64;    
+  for(ii = 0; ii < vid.height; ii++) {
+    /* "prefetch" */
+    for(jj = 0; jj < vid.width; jj+=16) {
+      uint64_t p8 = *(volatile uint64_t*)(&VGA_pagebase[i + jj]);
+      (void)p8;
+    }
     
-    //fb[i] = palette_[VGA_pagebase[i]];
+    for(jj = 0; jj < vid.width; jj+=8) {
+      uint64_t p8 = *(uint64_t*)(&VGA_pagebase[i + jj]);
+      pA.packed.p0 = palette_[extract_byte(p8, 0)];
+      pA.packed.p1 = palette_[extract_byte(p8, 1)];
+      pA.packed.p2 = palette_[extract_byte(p8, 2)];
+      pA.packed.p3 = palette_[extract_byte(p8, 3)];    
+      pB.packed.p0 = palette_[extract_byte(p8, 4)];
+      pB.packed.p1 = palette_[extract_byte(p8, 5)];
+      pB.packed.p2 = palette_[extract_byte(p8, 6)];
+      pB.packed.p3 = palette_[extract_byte(p8, 7)];    
+      *(uint64_t*)(&fb[i + jj + 0]) = pA.u64;
+      *(uint64_t*)(&fb[i + jj + 4]) = pB.u64;    
+    }
+    i += vid.width;
   }
   asm volatile ("fence.i" ::: "memory");
+
 }
 
 
