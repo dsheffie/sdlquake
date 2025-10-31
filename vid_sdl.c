@@ -361,17 +361,6 @@ void UpdateDisplayNow() {
   asm volatile ("fence.i" ::: "memory");
 }
 
-typedef struct {
-  uint32_t f : 23;
-  uint32_t e : 8;
-  uint32_t s : 1;
-} flt_t;
-
-typedef union {
-  float f;
-  flt_t ff;
-  uint32_t u32;
-} floatint;
 
 float __divsf3(float a, float b) {
   int r,e,n;

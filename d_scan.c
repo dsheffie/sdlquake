@@ -32,6 +32,27 @@ int				r_turb_spancount;
 
 void D_DrawTurbulent8Span (void);
 
+/* this computes y = 65536/x
+   lg2(y) = lg2(65536) - lg2(x)
+   lg2(y) ~ (16 - (x>>23 - 127)+127) [bit pattern of float]
+   lg2(y) ~ (270 - (x>>23))
+   y ~ 270 << 23 - x
+   y ~ 0x87000000 - x
+ */
+static inline float z_recip16d16(float x) {
+  /* this requires positive x */
+  float y;
+  floatint ff,bb;
+  ff.f = x;
+  /* should we round up? */
+  bb.u32 = ff.u32;
+  bb.ff.e -= 16;
+  ff.u32 = 0x87000000 - (ff.u32);
+  y = ff.f; /* ~ 65535/x */
+  y = y * (2.0f - bb.f*y); /* one iteration */
+  return y;
+}
+
 
 /*
 =============
@@ -149,8 +170,10 @@ void Turbulent8 (espan_t *pspan)
 		sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 		tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 		zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = z_recip16d16(zi);
 
+		
 		r_turb_s = (int)(sdivz * z) + sadjust;
 		if (r_turb_s > bbextents)
 			r_turb_s = bbextents;
@@ -159,9 +182,9 @@ void Turbulent8 (espan_t *pspan)
 
 		r_turb_t = (int)(tdivz * z) + tadjust;
 		if (r_turb_t > bbextentt)
-			r_turb_t = bbextentt;
+		  r_turb_t = bbextentt;
 		else if (r_turb_t < 0)
-			r_turb_t = 0;
+		  r_turb_t = 0;
 
 		do
 		{
@@ -180,8 +203,9 @@ void Turbulent8 (espan_t *pspan)
 				sdivz += sdivz16stepu;
 				tdivz += tdivz16stepu;
 				zi += zi16stepu;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
-
+				//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = z_recip16d16(zi);
+				
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
@@ -209,7 +233,9 @@ void Turbulent8 (espan_t *pspan)
 				sdivz += d_sdivzstepu * spancountminus1;
 				tdivz += d_tdivzstepu * spancountminus1;
 				zi += d_zistepu * spancountminus1;
-				z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+				z = z_recip16d16(zi);
+				
 				snext = (int)(sdivz * z) + sadjust;
 				if (snext > bbextents)
 					snext = bbextents;
@@ -278,7 +304,8 @@ void D_DrawSpans8 (espan_t *pspan) {
       sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
       tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
       zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-      z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+      //z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+      z = z_recip16d16(zi);
       
       s = (int)(sdivz * z) + sadjust;
       if (s > bbextents)
@@ -306,7 +333,8 @@ void D_DrawSpans8 (espan_t *pspan) {
 	      sdivz += sdivz8stepu;
 	      tdivz += tdivz8stepu;
 	      zi += zi8stepu;
-	      z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	      //z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	      z = z_recip16d16(zi);
 	      
 	      snext = (int)(sdivz * z) + sadjust;
 	      if (snext > bbextents)
@@ -335,7 +363,9 @@ void D_DrawSpans8 (espan_t *pspan) {
 	      sdivz += d_sdivzstepu * spancountminus1;
 	      tdivz += d_tdivzstepu * spancountminus1;
 	      zi += d_zistepu * spancountminus1;
-	      z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	      //z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	      z = z_recip16d16(zi);
+	      
 	      snext = (int)(sdivz * z) + sadjust;
 	      if (snext > bbextents)
 		snext = bbextents;
@@ -420,8 +450,9 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 	sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 	tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 	zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-	z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
-
+	//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	z = z_recip16d16(zi);
+	
 	s = (int)(sdivz * z) + sadjust;
 	if (s > bbextents)
 	  s = bbextents;
@@ -451,8 +482,9 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 		sdivz += sdivzstepu;
 		tdivz += tdivzstepu;
 		zi += zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
-
+		//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = z_recip16d16(zi);
+		
 		snext = (int)(sdivz * z) + sadjust;
 		if (snext > bbextents)
 		  snext = bbextents;
@@ -480,7 +512,8 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 		sdivz += d_sdivzstepu * spancountminus1;
 		tdivz += d_tdivzstepu * spancountminus1;
 		zi += d_zistepu * spancountminus1;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = z_recip16d16(zi);
 		snext = (int)(sdivz * z) + sadjust;
 		if (snext > bbextents)
 		  snext = bbextents;
@@ -544,8 +577,9 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 	sdivz = d_sdivzorigin + dv*d_sdivzstepv + du*d_sdivzstepu;
 	tdivz = d_tdivzorigin + dv*d_tdivzstepv + du*d_tdivzstepu;
 	zi = d_ziorigin + dv*d_zistepv + du*d_zistepu;
-	z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
-
+	//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+	z = z_recip16d16(zi);
+	
 	s = (int)(sdivz * z) + sadjust;
 	if (s > bbextents)
 	  s = bbextents;
@@ -575,8 +609,9 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 		sdivz += sdivzstepu;
 		tdivz += tdivzstepu;
 		zi += zistepu;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
-
+		//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = z_recip16d16(zi);
+		
 		snext = (int)(sdivz * z) + sadjust;
 		if (snext > bbextents)
 		  snext = bbextents;
@@ -604,7 +639,9 @@ void D_DrawSpans16 (espan_t *pspan) //qbism- up it from 8 to 16
 		sdivz += d_sdivzstepu * spancountminus1;
 		tdivz += d_tdivzstepu * spancountminus1;
 		zi += d_zistepu * spancountminus1;
-		z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		//z = (float)0x10000 / zi;	// prescale to 16.16 fixed-point
+		z = z_recip16d16(zi);
+		
 		snext = (int)(sdivz * z) + sadjust;
 		if (snext > bbextents)
 		  snext = bbextents;

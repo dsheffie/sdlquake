@@ -352,3 +352,15 @@ inline static uint64_t rdinstret(void) {
     asm volatile ("rdinstret %0" : "=r" (ret));
     return ret;
 }
+
+typedef struct {
+  uint32_t f : 23;
+  uint32_t e : 8;
+  uint32_t s : 1;
+} flt_t;
+
+typedef union {
+  float f;
+  flt_t ff;
+  uint32_t u32;
+} floatint;
